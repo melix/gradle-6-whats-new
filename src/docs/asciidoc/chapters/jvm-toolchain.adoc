@@ -1,0 +1,104 @@
+[background-color="#01303a"]
+== Java, Groovy, and Scala toolchain improvements
+
+=== Combine Core JVM Plugins
+
+[plantuml, plugins5, png, width=800, height=0%]
+....
+scale 1600 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "java-library" <<Plugin>> #lightyellow  {
+}
+
+rectangle "application" <<Plugin>> #lightyellow {
+}
+
+rectangle "java" <<Plugin>> {
+}
+
+rectangle "java-base" <<Plugin>> {
+}
+
+"java-library" --> java : apply()
+application --> java : apply()
+java --> "java-base" : apply()
+
+rectangle "groovy" <<Plugin>> #lightgreen  {
+}
+
+rectangle "scala" <<Plugin>> #lightgreen {
+}
+
+groovy --> java : apply()
+scala --> java : apply()
+....
+
+=== Support for JDK 13
+
+Use in one project
+```kotlin
+java {
+    sourceCompatibility = JavaVersion.VERSION_13
+    targetCompatibility = JavaVersion.VERSION_13
+}
+```
+
+Or use in all subprojects
+```kotlin
+subprojects {
+    plugins.withType<JavaPlugin> {
+        extensions.configure<JavaPluginExtension> {
+            sourceCompatibility = JavaVersion.VERSION_13
+            targetCompatibility = JavaVersion.VERSION_13
+        }
+    }
+}
+```
+
+=== Support for JDK 13
+
+Turn on support for Java 13 preview features like _text blocks_
+```kotlin
+// for compilation
+tasks.withType<JavaCompile> {
+    options.compilerArgs.add("--enable-preview")
+}
+
+// to run tests
+tasks.withType<Test>  {
+    jvmArgs = listOf("--enable-preview")
+}
+
+// to run an application
+application {
+    applicationDefaultJvmArgs = listOf("--enable-preview")
+}
+```
+
+```kotlin
+// to generate Javadoc
+tasks.withType<Javadoc>  {
+    val javadocOptions = options as CoreJavadocOptions
+    javadocOptions.addStringOption("source", "13")
+    javadocOptions.addBooleanOption("-enable-preview", true)
+}
+```
+
+=== Incremental Groovy compilation
+
+* Turn on incremental compilation for Groovy compile tasks https://docs.gradle.org/6.0.1/userguide/groovy_plugin.html#sec:incremental_groovy_compilation[(doc)]
+** `tasks.withType<GroovyCompile> { options.isIncremental = true }`
+* Turn on compilation avoidance between projects in `settings.gradle(.kts)`
+** `enableFeaturePreview("GROOVY_COMPILATION_AVOIDANCE")` https://docs.gradle.org/6.0.1/userguide/groovy_plugin.html#sec:groovy_compilation_avoidance[(doc)]
+* Combine `groovy` and `java-library` plugins
+** For example to make Groovy an `implementation` detail
+
+=== Scala Zinc compiler update
+
+* Gradle now uses `org.scala-sbt:zinc` https://docs.gradle.org/6.0.1/userguide/scala_plugin.html#sec:configure_zinc_compiler[(doc)]
+* Configure Zinc compiler version `scala { zincVersion.set("1.3.1") }`
+* Combine `scala` and `java-library` plugins
+** For example to make Scala an `implementation` detail

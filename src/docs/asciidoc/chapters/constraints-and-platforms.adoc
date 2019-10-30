@@ -1,0 +1,73 @@
+[background-color="#01303a"]
+== Dependency Constraints and Platforms
+
+=== Share dependency versions with platforms
+
+Create a separate project and apply `java-platform` plugin https://docs.gradle.org/6.0.1/userguide/java_platform_plugin.html[(doc)]
+
+[plantuml, plugins2, png, width=500, height=0%]
+....
+@startuml
+scale 1000 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "java-platform" <<Plugin>> #lightyellow {
+}
+rectangle "java-library" <<Plugin>> #lightgrey  {
+}
+rectangle "application" <<Plugin>> #lightgrey {
+}
+rectangle "java" <<Plugin>> #lightgrey {
+}
+rectangle "java-base" <<Plugin>> #lightgrey  {
+}
+
+"java-library" --> java : apply()
+application --> java : apply()
+java --> "java-base" : apply()
+
+@enduml
+....
+
+=== Use dependency constraints and rich versions
+
+* Use dependency constraints block
+* Use _rich versions_, including _strict versions_, if required https://docs.gradle.org/6.0.1/userguide/rich_versions.html[(doc)]
+
+```kotlin
+dependencies {
+  constraints {
+    api("com.google.guava:guava:24.1.1-jre!!")
+    api("com.google.inject:guice") {
+      version {
+        strictly("[4.0, 5.0[")
+        // require("[4.0, 5.0[")
+        prefer("4.2.0")
+        reject("4.2.1")
+        // rejectAll()
+      }
+      because("Only version 4 of Guice has all DI features we need.")
+    }
+  }
+}
+```
+
+=== Use Platform in all Projects
+
+Local project with `java-platform` plugin
+
+```kotlin
+dependencies {
+  api(platform(project(":my-platform")))
+}
+```
+
+Published platform (BOM can serve as platform)
+
+```kotlin
+dependencies {
+  api(platform("com.fasterxml.jackson:jackson-bom:2.9.8"))
+}
+```

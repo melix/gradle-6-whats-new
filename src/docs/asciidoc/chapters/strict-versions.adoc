@@ -1,0 +1,48 @@
+[background-color="#01303a"]
+== Bonus: Strict version details
+
+=== Strict version resolution
+
+[plantuml, chapter-1-3, png, width=500, height=0%]
+....
+scale 1000 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "App" <<Component>> {
+}
+
+rectangle "HelloJavaService" <<Component>> {
+}
+
+rectangle "Guice" <<Component>> {
+}
+
+rectangle "Guava_24" <<Component>> {
+}
+
+rectangle "Guava_25" <<Component>> {
+}
+
+App -> HelloJavaService
+App --> Guice
+Guice -> Guava_25
+HelloJavaService -> Guava_24
+Guava_24 <-[#red,dashed]-> Guava_25 : conflict
+....
+
+`hello-java-service/gradle.kts` defines `com.google.guava:guava:24.1.1-android!!`
+
+```text
+> Cannot find version of 'guava' that satisfies version constraints:
+  Dependency path 'app' --> 'guice:4.2.2' --> 'guava:25.1-android'
+  Dependency path 'app' --> 'hello-java-service' --> 'guava:{strictly 24.1.1-android}'
+```
+
+`app/gradle.kts` defines `com.google.guava:guava:24.1.1-android!!`
+
+```text
+\--- guice:4.2.2
+     \--- guava:25.1-android -> 24.1.1-android
+```

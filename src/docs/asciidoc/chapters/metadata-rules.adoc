@@ -1,0 +1,32 @@
+[background-color="#01303a"]
+== Enrich existing Metadata with Component Metadata Rules
+
+=== Component Metadata Rules
+
+* Works on all metadata (Gradle, pom, ivy) but allows to add everything that can be expressed in Gradle Module Metadata https://docs.gradle.org/6.0.1/userguide/component_metadata_rules.html[(doc)]
+* Fix information that is wrong
+** E.g. remove unused dependency https://docs.gradle.org/6.0.1/userguide/component_metadata_rules.html#fixing_wrong_dependency_details[(doc)]
+* Add information that is missing
+** Turning classified jars (like `-javadoc.jar`) into variants https://docs.gradle.org/6.0.1/userguide/component_metadata_rules.html#making_variants_published_as_classified_jars_explicit[(doc)]
+** Making variants encoded in versions explicit (like Guava) https://docs.gradle.org/6.0.1/userguide/component_metadata_rules.html#making_variants_encoded_in_versions_explicit[(doc)]
+** Add capabilities to detect conflict (only one can be picked from `log4j` and `log4j-over-slf4j`) https://docs.gradle.org/6.0.1/userguide/component_metadata_rules.html#adding_missing_capabilities_to_detect_conflicts[(doc)]
+** ...
+
+=== Guava Component Metadata Rule
+
+* Add additional _jdk${version}Api_ and _jdk${version}Runtime_ variants and
+  set `org.gradle.jvm.version` for different variants (*6* or *8*)
+** Gradle uses `targetCompatibility` to select the best variant (best jar)
+
+```kotlin
+subprojects {
+  dependencies {
+    components {
+      withModule<GuavaRule>("com.google.guava:guava")
+    }
+  }
+}
+```
+
+
+

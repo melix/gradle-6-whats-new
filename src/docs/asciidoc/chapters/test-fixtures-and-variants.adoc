@@ -1,0 +1,91 @@
+[background-color="#01303a"]
+==  Better project structures and reuse with test fixtures and feature variants
+
+=== Write test fixtures to share code for testing
+
+* Apply `java-test-fixtures` plugin in addition to `java-library` https://docs.gradle.org/6.0.1/userguide/java_testing.html#sec:java_test_fixtures[(doc)]
+* Use `src/testFixtures/java` (or `src/testFixtures/<other-jvm-language>`)
+
+[plantuml, plugins4, png, width=400, height=0%]
+....
+scale 800 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "java-library" <<Plugin>> #lightyellow  {
+}
+
+rectangle "java" <<Plugin>> {
+}
+
+rectangle "java-base" <<Plugin>> {
+}
+
+"java-library" --> java : apply()
+java --> "java-base" : apply()
+
+rectangle "java-test-fixture" <<Plugin>> #lightgreen  {
+}
+
+"java-test-fixture" ..> java : configures
+....
+
+=== Use test fixtures of other project/component
+
+Depend on the test fixture _variant_ of another project/component https://docs.gradle.org/6.0.1/userguide/java_testing.html#consuming_test_fixtures_of_another_project[(doc)]
+
+```kotlin
+dependencies {
+  // Use test fixtures of local project
+  testImplementation(testFixtures(project(":data")))
+
+  // Use test fixture of Guava (if it would publish test fixtures)
+  testImplementation(testFixtures("com.google.guava:guava")))
+}
+```
+
+=== Split modules by using feature variants
+
+Functionality of `java-library` plugin https://docs.gradle.org/6.0.1/userguide/feature_variants.html[(doc)]
+
+```kotlin
+val loud: SourceSet by sourceSets.creating
+
+java {
+  registerFeature("loud") {
+    // code isolated: separate implementation and dependencies
+    usingSourceSet(loud)
+
+    // code not isolated: use for "optional dependencies"
+    usingSourceSet(sourceSets.main)
+  }
+}
+
+dependencies {
+  "loudApi"(project(":data"))
+  "loudImplementation"("org.apache.commons:commons-lang3")
+}
+```
+
+=== Use feature variants of other project/component
+
+Depend on a feature variant of another project/component https://docs.gradle.org/6.0.1/userguide/feature_variants.html#sec::consuming_feature_variants[(doc)]
+
+```kotlin
+dependencies {
+  implementation(project(":hello-java-service")) {
+    capabilities {
+      // Use feature variant by requesting the corresponding capability
+      requireCapability("org.gradle.hello6:hello-java-service-loud")
+    }
+  }
+
+  implementation("com.google.inject:guice") {
+    capabilities {
+      // Select no_aop feature of Guice (not published, added by rule)
+      requireCapability("com.google.inject:guice-no_aop")
+    }
+  }
+}
+```

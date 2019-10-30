@@ -1,0 +1,130 @@
+[background-color="#01303a"]
+== New features for plugin authors
+
+=== Generate plugin projects with Gradle init task
+
+```kotlin
+$ gradle init
+```
+
+=== Generate plugin projects with Gradle init task
+
+```kotlin
+Select type of project to generate:
+  1: basic
+  2: application
+  3: library
+  4: Gradle plugin
+Enter selection (default: basic) [1..4]
+```
+
+=== Generate plugin projects with Gradle init task
+
+```kotlin
+Select implementation language:
+  1: Groovy
+  2: Java
+  3: Kotlin
+Enter selection (default: Java) [1..3]
+
+```
+
+=== Generate plugin projects with Gradle init task
+
+```kotlin
+Select build script DSL:
+  1: Groovy
+  2: Kotlin
+Enter selection (default: Groovy) [1..2]
+```
+
+```kotlin
+├── build.gradle.kts
+├── gradle
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew
+├── gradlew.bat
+├── settings.gradle.kts
+└── src
+    ├── functionalTest
+    │   └── java
+    │       └── my
+    │           └── MyPluginFunctionalTest.java
+    ├── main
+    │   ├── java
+    │   │   └── my
+    │   │       └── MyPlugin.java
+    │   └── resources
+    └── test
+        ├── java
+        │   └── my
+        │       └── MyPluginTest.java
+        └── resources
+```
+
+=== Managed properties improvements
+
+Managed properties: Lazy properties with less boilerplate https://docs.gradle.org/6.0.1/userguide/custom_gradle_types.html#managed_properties[(doc)]
+
+`buildSrc/src/main/java/ATask.java`
+
+```java
+abstract class ATask extends DefaultTask {
+    abstract Property<String> getInput();
+
+    @TaskAction
+    void doAction() {
+        System.out.println(input.get());
+    }
+}
+```
+
+`build.gradle.kts`
+
+```kotlin
+tasks.create<ATask>("a") {
+    input.set("something")
+    // input.set(provider { ... })
+}
+```
+
+=== Worker API enhancements
+
+* Worker API: Execute work in parallel and/or isolation (separate JVM) https://docs.gradle.org/6.0.1/userguide/custom_tasks.html#worker_api[(doc)]
+** New in Gradle 6: `FileSystemOperations` (work with files)
+** New in Gradle 6: `ExecOperations` (execute extra processes)
+
+```groovy
+private final FileSystemOperations fileSystemOperations
+
+@Inject
+public ReverseFile(FileSystemOperations fileSystemOperations) {
+    this.fileSystemOperations = fileSystemOperations
+}
+
+@Override
+public void execute() {
+    fileSystemOperations.copy {
+        from parameters.fileToReverse
+        into parameters.destinationDir
+        filter { String line -> line.reverse() }
+    }
+}
+```
+
+=== Variant-aware plugins
+
+* The previously shown variant-aware features can be leveraged in plugins
+* Examples of plugins that make heavy use of it already
+** Android (will add publishing in `3.6.0`)
+** Kotlin Native (already publishes Gradle Module Metadata)
+
+=== Variant-aware plugins
+* Further documentation
+** Variant-aware matching and resolutions https://docs.gradle.org/6.0.1/userguide/variant_model.html[(doc)]
+** Variant Attributes https://docs.gradle.org/6.0.1/userguide/variant_attributes.html[(doc)]
+** Capabilities https://docs.gradle.org/6.0.1/userguide/component_capabilities.html[(doc)]
+** Transforming artifacts https://docs.gradle.org/6.0.1/userguide/artifact_transforms.html[(doc)]
+

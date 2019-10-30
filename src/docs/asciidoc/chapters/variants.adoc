@@ -1,0 +1,418 @@
+[background-color="#01303a"]
+== Bonus: Where are the variants?
+
+=== Variants of Components
+
+*Declared Dependencies*
+
+[plantuml, chapter-1-1, png, width=500, height=0%]
+....
+@startuml
+scale 1000 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "App" <<Application>> {
+    rectangle "Runtime" <<Variant>> as AppRT {
+        rectangle "app.jar" as x
+    }
+    rectangle "compileClasspath" <<Task-Input>> {
+    }
+    rectangle "runtimeClasspath" <<Task-Input>> {
+    }
+}
+
+rectangle "HelloJavaService" <<Component>> {
+    rectangle "Runtime" <<Variant>> as SJRT {
+        rectangle "hello-java-service.jar" as dep3
+    }
+    rectangle "API" <<Variant>> as SJAPI  {
+        rectangle "hello-java-service.jar" as dep4
+    }
+}
+
+rectangle "Data" <<Component>> {
+    rectangle "Runtime" <<Variant>> as DataRt {
+        rectangle "data.jar" as dep1
+    }
+    rectangle "API" <<Variant>> as DataAPI {
+        rectangle "data.jar" as dep2
+    }
+}
+
+rectangle "Guava" <<Component>> {
+    rectangle "Runtime" <<Variant>> as GuavaRT {
+        rectangle "guava.jar" as artifactGuava1
+    }
+    rectangle "API" <<Variant>> as GuavaAPI  {
+        rectangle "guava.jar" as artifactGuava2
+    }
+}
+
+SJRT ---> Data : api
+SJAPI ---> Data : api
+SJRT ---> Guava : implementation
+AppRT ---> HelloJavaService : implementation
+
+runtimeClasspath -[#white,thickness=0]--> SJRT
+
+@enduml
+....
+
+=== Variants of Components
+
+*Resolved Dependencies*
+
+[plantuml, chapter-1-2, png, width=500, height=0%]
+....
+@startuml
+scale 1000 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "App" <<Application>> {
+    rectangle "Runtime" <<Variant>> as AppRT {
+        rectangle "app.jar" as x
+    }
+    rectangle "compileClasspath" <<Task-Input>> {
+    }
+    rectangle "runtimeClasspath" <<Task-Input>> {
+    }
+}
+
+rectangle "HelloJavaService" <<Component>> {
+    rectangle "Runtime" <<Variant>> as SJRT {
+        rectangle "hello-java-service.jar" as dep3
+    }
+    rectangle "API" <<Variant>> as SJAPI  {
+        rectangle "hello-java-service.jar" as dep4
+    }
+}
+
+rectangle "Data" <<Component>> {
+    rectangle "Runtime" <<Variant>> as DataRt {
+        rectangle "data.jar" as dep1
+    }
+    rectangle "API" <<Variant>> as DataAPI {
+        rectangle "data.jar" as dep2
+    }
+}
+
+rectangle "Guava" <<Component>> {
+    rectangle "Runtime" <<Variant>> as GuavaRT {
+        rectangle "guava.jar" as artifactGuava1
+    }
+    rectangle "API" <<Variant>> as GuavaAPI  {
+        rectangle "guava.jar" as artifactGuava2
+    }
+}
+
+compileClasspath --> SJAPI
+SJAPI ---> DataAPI
+runtimeClasspath -[#green]--> SJRT
+runtimeClasspath -[#green]> AppRT
+SJRT --[#green]-> DataRt
+SJRT --[#green]-> GuavaRT
+
+@enduml
+....
+
+=== Test fixture variant selection
+
+[plantuml, chapter-2-1, png, width=800, height=0%]
+....
+@startuml
+scale 1600 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "HelloJavaService" <<Component>> {
+    rectangle "compileClasspath" <<Task-Input>> {
+    }
+    rectangle "testCompileClasspath" <<Task-Input>> {
+    }
+    rectangle "testRuntimeClasspath" <<Task-Input>> {
+    }
+}
+
+rectangle "Data" <<Component>> {
+    rectangle "Runtime" <<Variant>> {
+        rectangle "data.jar" as dep1
+    }
+    rectangle "API" <<Variant>> {
+        rectangle "data.jar" as dep2
+    }
+    rectangle "testFixtureRuntime" <<Variant>> {
+        rectangle "data-test-fixtures.jar" as dep3
+    }
+    rectangle "testFixtureAPI" <<Variant>> {
+        rectangle "data-test-fixtures.jar" as dep4
+    }
+}
+
+
+compileClasspath --> API
+testCompileClasspath --> API
+testCompileClasspath --> testFixtureAPI : testFixture()
+testRuntimeClasspath -[#green]-> Runtime
+testRuntimeClasspath -[#green]-> testFixtureRuntime : testFixture()
+
+@enduml
+....
+
+=== Feature variant selection
+
+[plantuml, chapter-2-2, png, width=1000, height=0%]
+....
+@startuml
+scale 2000 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "App" <<Component>> {
+    rectangle "compileClasspath" <<Task-Input>> {
+    }
+    rectangle "runtimeClasspath" <<Task-Input>> {
+    }
+}
+
+rectangle "Data" <<Component>> {
+    rectangle "API" <<Variant>> {
+        rectangle "hello-java-service.jar" as dep2
+    }
+    rectangle "Runtime" <<Variant>> {
+        rectangle "hello-java-service.jar" as dep1
+    }
+    rectangle "loudAPI" <<Variant>> {
+        rectangle "hello-java-service-loud.jar" as dep4
+    }
+    rectangle "loudRuntime" <<Variant>> {
+        rectangle "hello-java-service-loud.jar" as dep3
+    }
+}
+
+
+compileClasspath --> API
+runtimeClasspath -[#green]-> Runtime
+compileClasspath --> loudAPI : requireCapability('hello-java-service-loud')
+runtimeClasspath -[#green]-> loudRuntime : requireCapability('hello-java-service-loud')
+
+@enduml
+....
+
+
+=== Published variants with artifacts
+
+_junit-jupiter-api-5.6.0.module_ (excerpt)
+```
+"variants": [
+  { "name": "apiElements" ... },
+  { "name": "runtimeElements" ... },
+  { "name": "javadocElements",
+    "attributes": {
+      "org.gradle.category": "documentation",
+      "org.gradle.docstype": "javadoc",
+    },
+    "files": [
+      { "url": "junit-jupiter-api-5.6.0-javadoc.jar" ... }
+    ]},
+  { "name": "sourcesElements" ... },
+```
+
+_build.gradle.kts_ (consumer example)
+```groovy
+val javadoc by configurations.creating {
+    attributes.attribute(CATEGORY_ATTRIBUTE, objects.named(DOCUMENTATION))
+    attributes.attribute(DOCS_TYPE_ATTRIBUTE, objects.named(JAVADOC))
+}
+dependencies { javadoc("org.junit.jupiter:junit-jupiter-api:5.6.0") }
+tasks.create("doSomethingWithJavadocs") { doLast { javadoc.files } }
+```
+
+=== Published platform dependency
+
+_junit-jupiter-api-5.6.0.module_ (excerpt)
+```
+"variants": [
+  {
+    "name": "apiElements",
+    "attributes": { "org.gradle.category": "library", ... },
+    "dependencies": [
+      {
+        "group": "org.junit",
+        "module": "junit-bom",
+        "version": { "requires": "5.6.0" },
+        "attributes": { "org.gradle.category": "platform" },
+      }
+    ]
+  },
+```
+
+=== Published platform (BOM)
+
+_junit-bom-5.6.0.module_ (excerpt)
+```
+"variants": [
+  {
+    "name": "apiElements",
+    "attributes": { "org.gradle.category": "platform", ... },
+    "dependencyConstraints": [
+      {
+        "group": "org.junit.jupiter",
+        "module": "junit-jupiter-api",
+        "version": { "requires": "5.6.0" }
+      },
+      {
+        "group": "org.junit.jupiter",
+        "module": "junit-jupiter-engine",
+        "version": { "requires": "5.6.0" }
+      }
+      ...
+```
+
+=== Published variants and platform dependencies
+
+[plantuml, chapter-4-1, png, width=1000, height=0%]
+....
+@startuml
+scale 2000 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "HelloJavaService" <<Component>> {
+}
+
+rectangle "junit-jupiter-api" <<Component>> as JupiterAPI {
+    rectangle "Runtime" <<Variant>> {
+        rectangle "junit-jupiter\n-api.jar" as dep1
+    }
+    rectangle "API" <<Variant>> {
+        rectangle "junit-jupiter\n-api.jar" as dep2
+    }
+    rectangle "javadoc" <<Variant>> {
+        rectangle "junit-jupiter\n-api-javadoc.jar" as dep3
+    }
+    rectangle "sources" <<Variant>> {
+        rectangle "junit-jupiter\n-api-sources.jar" as dep4
+    }
+}
+
+rectangle "junit-jupiter-engine" <<Component>> as JupiterEngine {
+    rectangle "Runtime" <<Variant>> as Var1 {
+        rectangle "junit-jupiter\n-engine.jar" as dep5
+    }
+    rectangle "API" <<Variant>> as Var2 {
+        rectangle "junit-jupiter\n-engine.jar" as dep6
+    }
+    rectangle "javadoc" <<Variant>> as Var3 {
+        rectangle "junit-jupiter\n-engine-javadoc.jar" as dep7
+    }
+    rectangle "sources" <<Variant>> as Var4 {
+        rectangle "junit-jupiter\n-engine-sources.jar" as dep8
+    }
+}
+
+rectangle "junit-bom" <<Component>> as JunitBOM {
+    rectangle "PlatformRuntime" <<Variant>> {
+    }
+    rectangle "PlatformAPI" <<Variant>> {
+    }
+}
+
+HelloJavaService --> JupiterEngine
+HelloJavaService --> JupiterAPI
+Runtime ---> JunitBOM
+API ---> JunitBOM
+Var1 ----> JunitBOM
+Var2 ----> JunitBOM
+
+@enduml
+....
+
+=== Guava Component Metadata Rule
+
+```kotlin
+val variantVersion = ctx.details.id.version
+val version = variantVersion.substring(0, variantVersion.indexOf("-"))
+
+val artifactName = variantVersion.substring(variantVersion.indexOf("-") + 1)
+val otherArtifactName = if (artifactName == "android") "jre" else "android"
+val jdkVersion = if (artifactName == "android") 6 else 8
+val otherJdkVersion = if (artifactName == "android") 8 else 6
+
+ctx.details.allVariants {
+  attributes {
+    if (!contains(TARGET_JVM_VERSION_ATTRIBUTE)) {
+      attribute(TARGET_JVM_VERSION_ATTRIBUTE, jdkVersion)
+    }
+  }
+  withCapabilities {
+    if (!capabilities.any { it.name == "google-collections" }) {
+      addCapability("com.google.collections",
+          "google-collections", variantVersion)
+    }
+  }
+}
+
+listOf("compile", "runtime").forEach { base ->
+  ctx.details.addVariant("jdk${otherJdkVersion}${base.capitalize()}", base) {
+    attributes {
+      attribute(TARGET_JVM_VERSION_ATTRIBUTE, otherJdkVersion)
+    }
+    withFiles {
+      removeAllFiles()
+      addFile("guava-$version-$otherArtifactName.jar",
+          "../$version-$otherArtifactName/guava-$version-$otherArtifactName.jar")
+    }
+  }
+}
+```
+
+=== Guava with added variants
+
+[plantuml, chapter-4-2, png, width=1000, height=0%]
+....
+@startuml
+scale 2000 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "HelloJavaService" <<Component>> {
+}
+
+rectangle "Guava 24.1.1-jre\ncapabilities = ['guava', 'google-collections']" <<Component>> as Guava {
+    rectangle "Runtime" <<Variant>> {
+        rectangle "guava-jre.jar" as dep1
+    }
+    rectangle "API" <<Variant>> {
+        rectangle "guava-jre.jar" as dep2
+    }
+    rectangle "jdk6Runtime" <<Variant>> {
+        rectangle "guava-android.jar" as dep3
+    }
+    rectangle "jdk6API" <<Variant>> {
+        rectangle "guava-android.jar" as dep4
+    }
+}
+
+rectangle "Google Collections 1.0\ncapabilities = ['google-collections']" <<Component>> as GC {
+    rectangle "Runtime" <<Variant>> as Var1 {
+        rectangle "google-collections.jar" as dep5
+    }
+    rectangle "API" <<Variant>> as Var2 {
+        rectangle "google-collections.jar" as dep6
+    }
+}
+
+HelloJavaService --> Guava
+HelloJavaService ---> GC
+Guava <-[#red,dashed]-> GC : conflict
+
+@enduml
+....

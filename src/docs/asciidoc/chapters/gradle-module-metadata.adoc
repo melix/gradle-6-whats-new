@@ -1,0 +1,129 @@
+[background-color="#01303a"]
+== Publishing with Gradle Module Metadata
+
+=== Today's Demo Project
+
+[plantuml, overview, png, width=600, height=0%]
+....
+scale 1600 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "App" <<Application>> {
+}
+
+rectangle "HelloJavaService" <<Component>> {
+}
+
+rectangle "Data" <<Component>> {
+}
+
+rectangle "Platform" <<Component>> #lightyellow {
+}
+
+rectangle "Guava" <<Component>> #lightgrey {
+}
+
+rectangle "Junit5" <<Component>> #lightgrey {
+}
+
+App --> HelloJavaService
+HelloJavaService --> Data
+
+HelloJavaService --> Guava
+HelloJavaService --> Junit5
+
+App -.-> Platform
+HelloJavaService -.-> Platform
+Data -.-> Platform
+....
+
+=== Gradle Module Metadata
+
+* Published in addition to `pom` (or `ivy.xml`) file https://docs.gradle.org/6.0.1/userguide/publishing_gradle_module_metadata.html[(doc)]
+* Use `maven-publish` or `ivy-publish` (`uploadArchives` is deprecated) https://docs.gradle.org/6.0.1/userguide/publishing_setup.html[(doc)]
+
+[plantuml, plugins3, png, width=800, height=0%]
+....
+scale 1600 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "java-platform" <<Plugin>> #lightyellow  {
+}
+
+rectangle "java-library" <<Plugin>> #lightyellow  {
+}
+
+rectangle "java" <<Plugin>> {
+}
+
+rectangle "java-base" <<Plugin>> {
+}
+
+"java-library" --> java : apply()
+java --> "java-base" : apply()
+
+rectangle "maven-publish" <<Plugin>> #lightgreen  {
+}
+
+rectangle "ivy-publish" <<Plugin>> #lightgreen {
+}
+....
+
+=== Javadoc and sources packaging and publishing
+
+Create Javadoc and/or sources jars for a `java-library`
+
+```
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+```
+
+* `sourcesJar` and `javadocJar` run as part of `assemble`
+* If `maven-publish` or `ivy-publish` are applied, jars are published with `publish`
+
+=== Gradle Module Metadata
+
+Publication of the `data-0.1` component of the demo project
+
+```kotlin
+data/0.1/
+├── data-0.1.pom
+      <!-- do_not_remove: published-with-gradle-metadata -->
+├── data-0.1.module
+      variants [
+        { "name": "apiElements",     "files": [...], ... }
+        { "name": "runtimeElements", "files": [...], ... }
+        { "name": "javadocElements", "files": [...], ... }
+        { "name": "sourcesElements", "files": [...], ... }
+      ]
+├── data-0.1.jar
+├── data-0.1-javadoc.jar
+├── data-0.1-sources.jar
+```
+
+=== Gradle Module Metadata
+
+Publication of the `platform-0.1` component of the demo project
+
+```kotlin
+platform/0.1/
+├── platform-0.1.pom
+      <!-- do_not_remove: published-with-gradle-metadata -->
+├── platform-0.1.module
+      variants [
+      {
+        "dependencyConstraints": [
+          { "group": "com.google.guava", "module": "guava",
+            "version": { "strictly": "24.1.1-jre" }
+          },
+          { "group": "com.google.inject", "module": "guice",
+            "version": { "requires": "4.2.2" }
+          },
+          ...
+```

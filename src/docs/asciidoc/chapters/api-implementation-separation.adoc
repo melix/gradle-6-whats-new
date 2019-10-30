@@ -1,0 +1,37 @@
+[background-color="#01303a"]
+== API and Implementation Separation
+
+=== Java/JVM Gradle Core Plugins
+
+Use `java-library` or `application` plugin
+
+[plantuml, plugins1, png, width=350, height=0%]
+....
+scale 700 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "java-library" <<Plugin>> #lightyellow  {
+}
+rectangle "application" <<Plugin>> #lightyellow {
+}
+rectangle "java" <<Plugin>> {
+}
+rectangle "java-base" <<Plugin>> {
+}
+
+"java-library" --> java : apply()
+application --> java : apply()
+java --> "java-base" : apply()
+....
+
+=== Separating runtime/compile time dependencies
+* _API_ and _implementation_ separation https://docs.gradle.org/6.0.1/userguide/java_library_plugin.html#sec:java_library_separation[(doc)]
+** Deprecated: [line-through]#`compile`# and [line-through]#`runtime`#
+** Declare dependencies: `api`, `implementation`, `compileOnly`, `runtimeOnly`
+** Resolved dependencies: `compileClasspath` or `runtimeClasspath`
+
+_"of each dependency, give me the variant required for compilation"_
+
+_"of each dependency, give me the variant required to run the application"_

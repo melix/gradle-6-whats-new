@@ -1,0 +1,121 @@
+:revnumber: {project-version}
+:example-caption!:
+ifndef::imagesdir[:imagesdir: images]
+ifndef::sourcedir[:sourcedir: ../java]
+:navigation:
+:menu:
+:status:
+:transition: none
+:title-slide-background-image: title.png
+:title-slide-transition: zoom
+:title-slide-transition-speed: fast
+:icons: font
+:revealjs_center: false
+:highlightjsdir: highlight
+
+= : What's New In Gradle 6.0?
+
++++<h3>+++
++++<div style="font-size: 0.5em; padding-top:140px">+++
+Cédric Champeau - Gradle Inc.
++++</div>+++
++++</h3>+++
+
+== Who am I?
+
+[.float-group]
+--
+image::cedric.png[width=160,height=0%,float=left]
++++<div style="padding-top:50px"/>+++
+Cédric Champeau (@CedricChampeau)
+
+Principal Software Engineer at Gradle
++++</div>+++
+--
+
+== Agenda
+
+. All things Dependency Management
+  .. API and implementation separation
+  .. Dependency constraints and platforms
+  .. Publishing and the Gradle Module Metadata format
+  .. Test fixtures and feature variants
+  .. Enrich existing Metadata with Rules
+. Java, Groovy, and Scala improvements
+. New features for plugin authors
+
+[NOTE.speaker]
+DM starts with declaring versions and versions
+
+== Today's Demo Project
+
+https://github.com/melix/gradle-6-whats-new/tree/master/demos/hello-gradle-6[github.com/gradle/gradle-6-whats-new/tree/master/demos/hello-gradle-6]
+
+[plantuml, overview, png, width=600, height=0%]
+....
+scale 1600 width
+skinparam class {
+	ArrowColor Black
+}
+
+rectangle "App" <<Application>> {
+}
+
+rectangle "HelloJavaService" <<Component>> {
+}
+
+rectangle "Data" <<Component>> {
+}
+
+rectangle "Platform" <<Component>> #lightyellow {
+}
+
+rectangle "Guava" <<Component>> #lightgrey {
+}
+
+rectangle "Junit5" <<Component>> #lightgrey {
+}
+
+App --> HelloJavaService
+HelloJavaService --> Data
+
+HelloJavaService --> Guava
+HelloJavaService --> Junit5
+
+App -.-> Platform
+HelloJavaService -.-> Platform
+Data -.-> Platform
+....
+
+include::chapters/api-implementation-separation.adoc[]
+
+include::chapters/constraints-and-platforms.adoc[]
+
+include::chapters/gradle-module-metadata.adoc[]
+
+include::chapters/test-fixtures-and-variants.adoc[]
+
+include::chapters/metadata-rules.adoc[]
+
+include::chapters/jvm-toolchain.adoc[]
+
+include::chapters/plugin-authoring.adoc[]
+
+== More Resources
+
+* https://docs.gradle.org/6.0.1/release-notes.html[Gradle 6 Release Notes]
+* https://docs.gradle.org/6.0.1/userguide/userguide.html[Gradle User Manual] with more content on https://docs.gradle.org/6.0.1/userguide/core_dependency_management.html[dependency management]
+* Recorded Dependency Management webcasts
+** https://gradle.com/blog/dependency-management-fundamentals/[Dependency Management Fundamentals]
+** https://gradle.com/blog/dependency-management-part-2-handling-conflicts/[Handling Conflicts and Customizing Resolution]
+** https://gradle.com/blog/dependency-management-with-gradle-part-3-publishing-and-release-strategies/[Publishing and Release Strategies]
+* Regular online intro and advanced trainings  - https://gradle.com/training/[gradle.com/training]
+
+[%notitle]
+== Thank you
+
+image::thank-you.png[background, size=cover]
+
+include::chapters/variants.adoc[]
+
+include::chapters/strict-versions.adoc[]
