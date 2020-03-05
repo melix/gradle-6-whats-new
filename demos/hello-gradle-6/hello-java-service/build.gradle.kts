@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    `maven-publish`
 }
 
 val loud: SourceSet by sourceSets.creating
@@ -10,21 +11,29 @@ java {
 }
 
 dependencies {
-    api(platform(project(":platform")))
-
+    implementation(platform(project(":platform")))
     api(project(":data"))
+    implementation("com.google.inject:guice:4.2.2")
 
-    implementation("com.google.guava:guava")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0-M1")
+    testRuntimeOnly("org.junit.jupiter:jupiter-engine")
+
+    testImplementation(testFixtures(project(":data")))
 
     "loudApi"(project(":data"))
     "loudImplementation"("org.apache.commons:commons-lang3:3.7")
 
-    testImplementation(testFixtures(project(":data")))
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0-M1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+publishing {
+    repositories {
+        maven { setUrl(rootProject.file("repo")) }
+    }
+    publications.create<MavenPublication>("maven") {
+        from(components["java"])
+    }
 }

@@ -24,8 +24,8 @@ subprojects {
 subprojects {
     plugins.withType<JavaPlugin> {
         extensions.configure<JavaPluginExtension> {
-            sourceCompatibility = JavaVersion.VERSION_13
-            targetCompatibility = JavaVersion.VERSION_13
+            sourceCompatibility = JavaVersion.VERSION_1_6
+            targetCompatibility = JavaVersion.VERSION_1_6
         }
     }
 }

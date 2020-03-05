@@ -1,16 +1,12 @@
 plugins {
     `java-library`
-    `java-test-fixtures`
     `maven-publish`
+    `java-test-fixtures`
 }
 
 java {
     withJavadocJar()
     withSourcesJar()
-}
-
-dependencies {
-    api(platform(project(":platform")))
 }
 
 publishing {
