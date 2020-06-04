@@ -1,3 +1,5 @@
+package org.gradle.presentation.plugin
+
 import com.github.jrubygradle.JRubyPlugin
 import org.ajoberstar.gradle.git.ghpages.GithubPagesPlugin
 import org.ajoberstar.gradle.git.ghpages.GithubPagesPluginExtension
@@ -15,8 +17,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.kotlin.dsl.delegateClosureOf
-import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.*
 import org.ysb33r.gradle.vfs.VfsPlugin
 import org.ysb33r.gradle.vfs.VfsProxy
 import java.io.File
@@ -28,14 +29,8 @@ class AsciidoctorPresentationPlugin : Plugin<Project> {
 
     override
     fun apply(project: Project) = project.run {
-        pluginManager.run {
-            apply<JRubyPlugin>()
-            apply<VfsPlugin>()
-            apply<JavaBasePlugin>()
-            apply<AsciidoctorPlugin>()
-            apply<GithubPagesPlugin>()
-        }
-        val extension = extensions.create("presentation", PresentationExtension::class.java, this)
+        applyPlugins()
+        val extension = createPresentationExtension()
 
         registerGems()
         configureAsciidoctor(extension)
@@ -55,6 +50,18 @@ class AsciidoctorPresentationPlugin : Plugin<Project> {
     }
 
     private
+    fun Project.createPresentationExtension() = extensions.create("presentation", PresentationExtension::class.java, this)
+
+    private
+    fun Project.applyPlugins() = pluginManager.run {
+        apply<JRubyPlugin>()
+        apply<VfsPlugin>()
+        apply<JavaBasePlugin>()
+        apply<AsciidoctorPlugin>()
+        apply<GithubPagesPlugin>()
+    }
+
+    private
     fun Project.createExportTasks(project: Project, extension: PresentationExtension, outputDir: Provider<Directory>, asciidocRevealOut: Provider<Directory>) {
         val exportConfig = configurations.maybeCreate("exportation")
         dependencies {
@@ -67,7 +74,7 @@ class AsciidoctorPresentationPlugin : Plugin<Project> {
         listOf("pdf", "jpeg", "png").forEach { type ->
             val baseTypeDir = "${outputDir.get().asFile}/export/${type}"
 
-            val gentask = tasks.register("exportTo${type.capitalize()}", JavaExec::class.java) {
+            val gentask = tasks.register<JavaExec>("exportTo${type.capitalize()}") {
                 group = GROUP
                 description = "Exports the presentation to ${type}"
                 dependsOn("asciidoctor")
@@ -93,7 +100,7 @@ class AsciidoctorPresentationPlugin : Plugin<Project> {
                                          templateDir: Provider<Directory>,
                                          revealJsDir: Provider<Directory>) {
         afterEvaluate {
-            tasks.withType(AsciidoctorTask::class.java).configureEach {
+            tasks.withType<AsciidoctorTask>().configureEach {
                 group = GROUP
                 sources(delegateClosureOf<PatternSet> {
                     include("index.adoc")
@@ -152,7 +159,7 @@ class AsciidoctorPresentationPlugin : Plugin<Project> {
             dependsOn("asciidoctor")
         }
         afterEvaluate {
-            extensions.getByType(GithubPagesPluginExtension::class.java).run {
+            extensions.getByType<GithubPagesPluginExtension>().run {
                 setRepoUri("git@github.com:${extension.githubUserName.get()}/${extension.githubRepoName.get()}.git")
                 pages.from(assemblePresentation)
             }
@@ -183,11 +190,10 @@ class AsciidoctorPresentationPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureAsciidoctor(extension: PresentationExtension) {
-        afterEvaluate {
-            extensions.getByType(AsciidoctorExtension::class.java).version = extension.asciidoctorJVersion.get()
-        }
+    fun Project.configureAsciidoctor(extension: PresentationExtension) = afterEvaluate {
+        extensions.getByType(AsciidoctorExtension::class.java).version = extension.asciidoctorJVersion.get()
     }
+    
 
     private
     fun Project.registerGems() {
